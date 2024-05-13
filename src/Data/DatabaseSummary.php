@@ -11,9 +11,4 @@ class DatabaseSummary extends Data
         public float $averageQueryDuration,
     ) {
     }
-
-    public static function fromArray($attributes): DatabaseSummary
-    {
-        return new self(...$attributes);
-    }
 }

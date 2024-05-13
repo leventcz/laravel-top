@@ -12,9 +12,4 @@ class CacheSummary extends Data
         public float $averageWritePerSecond,
     ) {
     }
-
-    public static function fromArray($attributes): CacheSummary
-    {
-        return new self(...$attributes);
-    }
 }

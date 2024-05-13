@@ -14,9 +14,4 @@ class HandledRequest extends Data
         public int $duration,
     ) {
     }
-
-    public static function fromArray($attributes): HandledRequest
-    {
-        return new self(...$attributes);
-    }
 }

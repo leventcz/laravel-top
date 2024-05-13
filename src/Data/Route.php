@@ -13,9 +13,4 @@ class Route extends Data
         public float $averageDuration,
     ) {
     }
-
-    public static function fromArray($attributes): Route
-    {
-        return new self(...$attributes);
-    }
 }

@@ -12,9 +12,4 @@ class RequestSummary extends Data
         public float $averageDuration,
     ) {
     }
-
-    public static function fromArray($attributes): RequestSummary
-    {
-        return new self(...$attributes);
-    }
 }
