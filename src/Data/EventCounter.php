@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Leventcz\Top\Data;
 
-class EventCollection extends Data
+class EventCounter extends Data
 {
     public function __construct(
         private array $events = [],

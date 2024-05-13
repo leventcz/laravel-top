@@ -9,7 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Leventcz\Top\Commands\TopCommand;
 use Leventcz\Top\Contracts\Repository;
-use Leventcz\Top\Data\EventCollection;
+use Leventcz\Top\Data\EventCounter;
 use Leventcz\Top\Listeners\CacheListener;
 use Leventcz\Top\Listeners\DatabaseListener;
 use Leventcz\Top\Listeners\RequestListener;
@@ -21,7 +21,7 @@ class ServiceProvider extends BaseServiceProvider
     {
         $this->app->singleton(Repository::class, RedisRepository::class);
         $this->app->bind('top.state', function (Application $app) {
-            return new StateManager($app->make(EventCollection::class), $app->make(Repository::class));
+            return new StateManager($app->make(EventCounter::class), $app->make(Repository::class));
         });
         $this->app->bind('top', TopManager::class);
     }
