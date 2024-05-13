@@ -7,7 +7,8 @@ namespace Leventcz\Top\Repositories;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Leventcz\Top\Contracts\Repository;
-use Leventcz\Top\Data\EventCollection;
+use Leventcz\Top\Data\DatabaseSummary;
+use Leventcz\Top\Data\EventCounter;
 use Leventcz\Top\Data\HandledRequest;
 use Leventcz\Top\Data\RequestSummary;
 use Leventcz\Top\Data\RouteCollection;
@@ -19,13 +20,13 @@ readonly class RedisRepository implements Repository
     ) {
     }
 
-    public function save(HandledRequest $request, EventCollection $eventCollection): void
+    public function save(HandledRequest $request, EventCounter $eventCounter): void
     {
-        $this->connection()->pipeline(function ($pipe) use ($request, $eventCollection) {
+        $this->connection()->pipeline(function ($pipe) use ($request, $eventCounter) {
             $key = "top-requests:$request->timestamp";
             $routeKey = $request->route.':data';
 
-            foreach ($eventCollection->get() as $event => $times) {
+            foreach ($eventCounter->get() as $event => $times) {
                 $pipe->hIncrBy($key, "$routeKey:$event", $times);
             }
 
@@ -45,7 +46,7 @@ readonly class RedisRepository implements Repository
             local totalRequests = 0
             local totalMemory = 0
             local totalDuration = 0
-            
+
             for _, key in ipairs(keys) do
                 local fields = redis.call('HGETALL', key)
                 for i = 1, #fields, 2 do
@@ -61,7 +62,7 @@ readonly class RedisRepository implements Repository
                     end
                 end
             end
-            
+
             local averageRequestPerSecond = totalRequests / 5
             local averageMemoryUsage = (totalRequests > 0 and totalMemory / totalRequests) or 0
             local averageDuration = (totalRequests > 0 and totalDuration / totalRequests) or 0
@@ -74,6 +75,43 @@ readonly class RedisRepository implements Repository
         return RequestSummary::fromArray(json_decode($result, true));
     }
 
+    public function getDatabaseSummary(): DatabaseSummary
+    {
+        $keys = $this->buildKeys(now()->getTimestamp());
+
+        $script = <<<'LUA'
+            local keys = KEYS
+            local totalRequests = 0
+            local totalQueryExecuted = 0
+            local totalQueryDuration = 0
+
+            for _, key in ipairs(keys) do
+                local fields = redis.call('HGETALL', key)
+                for i = 1, #fields, 2 do
+                    local field = fields[i]
+                    local value = tonumber(fields[i + 1])
+                    local _, metric = field:match("([^:]+):data:([^:]+)")
+                    if metric == 'hits' then
+                        totalRequests = totalRequests + value
+                    elseif metric == 'database-query-executed' then
+                        totalQueryExecuted = totalQueryExecuted + value
+                    elseif metric == 'database-query-execution-time' then
+                        totalQueryDuration = totalQueryDuration + value
+                    end
+                end
+            end
+
+            local averageQueryPerSecond = totalQueryExecuted / 5
+            local averageQueryDuration = (totalRequests > 0 and totalQueryDuration / totalRequests) or 0
+
+            return cjson.encode({averageQueryPerSecond = averageQueryPerSecond, averageQueryDuration = averageQueryDuration})
+        LUA;
+
+        $result = $this->connection()->eval($script, count($keys), ...$keys);
+
+        return DatabaseSummary::fromArray(json_decode($result, true));
+    }
+
     public function getTopRoutes(): RouteCollection
     {
         $keys = $this->buildKeys(now()->getTimestamp());
@@ -81,7 +119,7 @@ readonly class RedisRepository implements Repository
         $script = <<<'LUA'
             local keys = KEYS
             local routeCounts = {}
-            
+
             for _, key in ipairs(keys) do
                 local fields = redis.call('HGETALL', key)
                 for i = 1, #fields, 2 do
@@ -100,7 +138,7 @@ readonly class RedisRepository implements Repository
                     end
                 end
             end
-            
+
             local topRoutes = {}
             for route, counts in pairs(routeCounts) do
                 local averageRequestPerSecond = counts.hits / 5
@@ -108,10 +146,10 @@ readonly class RedisRepository implements Repository
                 local averageDuration = (counts.hits > 0 and counts.duration / counts.hits) or 0
                 table.insert(topRoutes, {route = route, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
             end
-            
+
             table.sort(topRoutes, function(a, b) return a[2] > b[2] end)
             topRoutes = #topRoutes > 5 and {unpack(topRoutes, 1, 5)} or topRoutes
-            
+
             return cjson.encode(topRoutes)
         LUA;
 

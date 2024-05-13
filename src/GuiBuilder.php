@@ -103,7 +103,7 @@ class GuiBuilder
     {
         return $this->createCard('Database', ['Queries/sec', 'Avg. Exec. Time(ms)'], [
             number_format($this->databaseSummary?->averageQueryPerSecond ?? 0, 2),
-            number_format($this->databaseSummary?->averageDuration ?? 0, 2),
+            number_format($this->databaseSummary?->averageQueryDuration ?? 0, 2),
         ]);
     }
 
@@ -172,7 +172,8 @@ class GuiBuilder
 
     public function moveToTop(): static
     {
-        $this->output?->write("\033[H");
+        system('clear');
+        //$this->output?->write("\033[H");
 
         return $this;
     }
