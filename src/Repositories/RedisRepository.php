@@ -7,6 +7,7 @@ namespace Leventcz\Top\Repositories;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Leventcz\Top\Contracts\Repository;
+use Leventcz\Top\Data\CacheSummary;
 use Leventcz\Top\Data\DatabaseSummary;
 use Leventcz\Top\Data\EventCounter;
 use Leventcz\Top\Data\HandledRequest;
@@ -110,6 +111,44 @@ readonly class RedisRepository implements Repository
         $result = $this->connection()->eval($script, count($keys), ...$keys);
 
         return DatabaseSummary::fromArray(json_decode($result, true));
+    }
+
+    public function getCacheSummary(): CacheSummary
+    {
+        $keys = $this->buildKeys(now()->getTimestamp());
+
+        $script = <<<'LUA'
+            local keys = KEYS
+            local totalCacheHit = 0
+            local totalCacheMissed = 0
+            local totalCacheWritten = 0
+
+            for _, key in ipairs(keys) do
+                local fields = redis.call('HGETALL', key)
+                for i = 1, #fields, 2 do
+                    local field = fields[i]
+                    local value = tonumber(fields[i + 1])
+                    local _, metric = field:match("([^:]+):data:([^:]+)")
+                    if metric == 'cache-hit' then
+                        totalCacheHit = totalCacheHit + value
+                    elseif metric == 'cache-missed' then
+                        totalCacheMissed = totalCacheMissed + value
+                    elseif metric == 'cache-written' then
+                        totalCacheWritten = totalCacheWritten + value
+                    end
+                end
+            end
+
+            local averageHitPerSecond = (totalCacheHit > 0 and totalCacheHit / 5) or 0
+            local averageMissPerSecond = (totalCacheMissed > 0 and totalCacheMissed / 5) or 0
+            local averageWritePerSecond = (totalCacheWritten > 0 and totalCacheWritten / 5) or 0
+
+            return cjson.encode({averageHitPerSecond = averageHitPerSecond, averageMissPerSecond = averageMissPerSecond, averageWritePerSecond = averageWritePerSecond})
+        LUA;
+
+        $result = $this->connection()->eval($script, count($keys), ...$keys);
+
+        return CacheSummary::fromArray(json_decode($result, true));
     }
 
     public function getTopRoutes(): RouteCollection

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Leventcz\Top\Contracts;
 
+use Leventcz\Top\Data\CacheSummary;
 use Leventcz\Top\Data\DatabaseSummary;
 use Leventcz\Top\Data\EventCounter;
 use Leventcz\Top\Data\HandledRequest;
@@ -17,6 +18,8 @@ interface Repository
     public function getRequestSummary(): RequestSummary;
 
     public function getDatabaseSummary(): DatabaseSummary;
+
+    public function getCacheSummary(): CacheSummary;
 
     public function getTopRoutes(): RouteCollection;
 }

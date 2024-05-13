@@ -20,10 +20,10 @@ class ServiceProvider extends BaseServiceProvider
     public function register(): void
     {
         $this->app->singleton(Repository::class, RedisRepository::class);
+        $this->app->singleton('top', TopManager::class);
         $this->app->bind('top.state', function (Application $app) {
             return new StateManager($app->make(EventCounter::class), $app->make(Repository::class));
         });
-        $this->app->bind('top', TopManager::class);
     }
 
     public function boot(Dispatcher $dispatcher): void

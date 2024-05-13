@@ -31,7 +31,7 @@ class CacheListener
         return [
             CacheHit::class => 'cacheHit',
             CacheMissed::class => 'cacheMissed',
-            KeyWritten::class => 'cacheMissed',
+            KeyWritten::class => 'keyWritten',
         ];
     }
 }

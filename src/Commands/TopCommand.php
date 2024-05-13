@@ -35,6 +35,7 @@ class TopCommand extends Command
                 $guiBuilder
                     ->setRequestSummary(Top::requests())
                     ->setDatabaseSummary(Top::database())
+                    ->setCacheSummary(Top::cache())
                     ->setTopRoutes(Top::routes());
             });
 
