@@ -1,0 +1,70 @@
+{
+    "name": "leventcz/laravel-top",
+    "description": "Real-time monitoring straight from the command line for Laravel applications.",
+    "keywords": [
+        "laravel",
+        "php",
+        "cli",
+        "metrics",
+        "realtime-monitoring",
+        "apm",
+        "command-line-tool"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Levent Corapsiz",
+            "email": "l.corapsiz@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2.0",
+        "ext-pcntl": "*",
+        "laravel/framework": "^10.0|^11.0",
+        "react/event-loop": "^1.5"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.15",
+        "pestphp/pest": "^2.34",
+        "phpstan/phpstan": "^1.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "Leventcz\\Top\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Leventcz\\Top\\ServiceProvider"
+            ],
+            "aliases": {
+                "Top": "Leventcz\\Top\\Facades\\Top"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "test:unit": "pest --colors=always",
+        "test:styling": "pint --test -v",
+        "test:analyse": "phpstan analyse --ansi",
+        "test": [
+            "@test:unit",
+            "@test:analyse",
+            "@test:styling"
+        ]
+    }
+}
