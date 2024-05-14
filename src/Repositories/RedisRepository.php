@@ -23,19 +23,21 @@ readonly class RedisRepository implements Repository
 
     public function save(HandledRequest $request, EventCounter $eventCounter): void
     {
-        $this->connection()->pipeline(function ($pipe) use ($request, $eventCounter) {
-            $key = "top-requests:$request->timestamp";
-            $routeKey = "$request->method:$request->route:data";
+        $this
+            ->connection()
+            ->pipeline(function ($pipe) use ($request, $eventCounter) {
+                $key = "top-requests:$request->timestamp";
+                $routeKey = "$request->method:$request->route:data";
 
-            foreach ($eventCounter->get() as $event => $times) {
-                $pipe->hIncrBy($key, "$routeKey:$event", $times);
-            }
+                foreach ($eventCounter->get() as $event => $times) {
+                    $pipe->hIncrBy($key, "$routeKey:$event", $times);
+                }
 
-            $pipe->hIncrBy($key, "$routeKey:hits", 1);
-            $pipe->hIncrBy($key, "$routeKey:memory", $request->memory);
-            $pipe->hIncrBy($key, "$routeKey:duration", $request->duration);
-            $pipe->expire($key, 10);
-        });
+                $pipe->hIncrBy($key, "$routeKey:hits", 1);
+                $pipe->hIncrBy($key, "$routeKey:memory", $request->memory);
+                $pipe->hIncrBy($key, "$routeKey:duration", $request->duration);
+                $pipe->expire($key, 10);
+            });
     }
 
     public function getRequestSummary(): RequestSummary
@@ -158,8 +160,6 @@ readonly class RedisRepository implements Repository
 
     public function getTopRoutes(): RouteCollection
     {
-        $keys = $this->buildKeys(now()->getTimestamp());
-
         $script = <<<'LUA'
             local keys = KEYS
             local routeCounts = {}
@@ -169,18 +169,20 @@ readonly class RedisRepository implements Repository
                 for i = 1, #fields, 2 do
                     local field = fields[i]
                     local value = tonumber(fields[i + 1])
-                    local route, metric = field:match("([^:]+):data:([^:]+)")
-                    if not routeCounts[route] then
-                        routeCounts[route] = {hits = 0, memory = 0, duration = 0}
-                    end
-                    if metric == 'hits' then
-                        routeCounts[route].hits = routeCounts[route].hits + value
-                    end
-                    if metric == 'memory' then
-                        routeCounts[route].memory = routeCounts[route].memory + value
-                    end
-                    if metric == 'duration' then
-                        routeCounts[route].duration = routeCounts[route].duration + value
+                    local method, route, metric = field:match("([^:]+):([^:]+):data:([^:]+)")
+                    if method and route and metric then
+                        if not routeCounts[route] then
+                            routeCounts[route] = {method = method, hits = 0, memory = 0, duration = 0}
+                        end
+                        if metric == 'hits' then
+                            routeCounts[route].hits = routeCounts[route].hits + value
+                        end
+                        if metric == 'memory' then
+                            routeCounts[route].memory = routeCounts[route].memory + value
+                        end
+                        if metric == 'duration' then
+                            routeCounts[route].duration = routeCounts[route].duration + value
+                        end
                     end
                 end
             end
@@ -190,10 +192,10 @@ readonly class RedisRepository implements Repository
                 local averageRequestPerSecond = counts.hits / 5
                 local averageMemoryUsage = (counts.hits > 0 and counts.memory / counts.hits) or 0
                 local averageDuration = (counts.hits > 0 and counts.duration / counts.hits) or 0
-                table.insert(topRoutes, {route = route, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
+                table.insert(topRoutes, {method = counts.method, route = route, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
             end
 
-            table.sort(topRoutes, function(a, b) return a[2] > b[2] end)
+            table.sort(topRoutes, function(a, b) return a.averageRequestPerSecond > b.averageRequestPerSecond end)
             topRoutes = #topRoutes > 5 and {unpack(topRoutes, 1, 5)} or topRoutes
 
             return cjson.encode(topRoutes)
