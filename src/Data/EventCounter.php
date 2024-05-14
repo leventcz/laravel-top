@@ -18,6 +18,13 @@ class EventCounter extends Data
         return $this;
     }
 
+    public function flush(): static
+    {
+        $this->events = [];
+
+        return $this;
+    }
+
     public function get(): array
     {
         return $this->events;
