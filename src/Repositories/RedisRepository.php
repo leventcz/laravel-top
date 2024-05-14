@@ -224,6 +224,6 @@ readonly class RedisRepository implements Repository
 
     private function connection(): Connection
     {
-        return $this->factory->connection();
+        return $this->factory->connection(config('top.connection'));
     }
 }

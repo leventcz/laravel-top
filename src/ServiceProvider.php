@@ -19,6 +19,7 @@ class ServiceProvider extends BaseServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/top.php', 'top');
         $this->app->singleton(Repository::class, RedisRepository::class);
         $this->app->singleton('top', TopManager::class);
         $this->app->bind('top.state', function (Application $app) {
@@ -29,9 +30,8 @@ class ServiceProvider extends BaseServiceProvider
     public function boot(Dispatcher $dispatcher): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([
-                TopCommand::class,
-            ]);
+            $this->commands([TopCommand::class]);
+            $this->publishes([__DIR__.'/../config/top.php' => config_path('top.php')], 'top');
 
             return;
         }
