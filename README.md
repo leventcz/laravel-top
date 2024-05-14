@@ -59,7 +59,7 @@ $cacheSummary->averageHitPerSecond;
 $cacheSummary->averageMissPerSecond;
 $cacheSummary->averageWritePerSecond;
 
-$topRoutes = Top::routes();
+$topRoutes = Top::http();
 $topRoutes->each(function(Route $route) {
     $route->uri;
     $route->method;

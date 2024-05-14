@@ -11,7 +11,7 @@ use Leventcz\Top\Data\RequestSummary;
 use Leventcz\Top\Data\RouteCollection;
 
 /**
- * @method static RequestSummary requests()
+ * @method static RequestSummary http()
  * @method static DatabaseSummary database()
  * @method static CacheSummary cache()
  * @method static RouteCollection routes()

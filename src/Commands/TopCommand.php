@@ -45,7 +45,7 @@ class TopCommand extends Command
     private function feed(GuiBuilder $guiBuilder): void
     {
         $guiBuilder
-            ->setRequestSummary(Top::requests())
+            ->setRequestSummary(Top::http())
             ->setDatabaseSummary(Top::database())
             ->setCacheSummary(Top::cache())
             ->setTopRoutes(Top::routes());

@@ -17,7 +17,7 @@ readonly class TopManager
     ) {
     }
 
-    public function requests(): RequestSummary
+    public function http(): RequestSummary
     {
         return $this->repository->getRequestSummary();
     }
