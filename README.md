@@ -36,6 +36,8 @@ return [
 If you want to access metrics in your application, you can use the **Top** facade.
 
 ```php
+<?php
+
 use Leventcz\Top\Facades\Top;
 use Leventcz\Top\Data\Route;
 
