@@ -7,7 +7,7 @@ namespace Leventcz\Top\Data;
 class HandledRequest extends Data
 {
     public function __construct(
-        public string $route,
+        public string $uri,
         public string $method,
         public int $timestamp,
         public int $memory,

@@ -126,7 +126,7 @@ class GuiBuilder
             ->each(function (Route $route) use ($table) {
                 $table->addRow([
                     $route->method,
-                    $route->route,
+                    $route->uri,
                     number_format($route->averageMemoryUsage, 2),
                     number_format($route->averageDuration, 2),
                     number_format($route->averageRequestPerSecond, 2),

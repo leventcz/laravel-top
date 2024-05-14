@@ -27,7 +27,7 @@ readonly class RedisRepository implements Repository
             ->connection()
             ->pipeline(function ($pipe) use ($request, $eventCounter) {
                 $key = "top-requests:$request->timestamp";
-                $routeKey = "$request->method:$request->route:data";
+                $routeKey = "$request->method:$request->uri:data";
 
                 foreach ($eventCounter->get() as $event => $times) {
                     $pipe->hIncrBy($key, "$routeKey:$event", $times);
@@ -162,37 +162,37 @@ readonly class RedisRepository implements Repository
     {
         $script = <<<'LUA'
             local keys = KEYS
-            local routeCounts = {}
+            local uriCounts = {}
 
             for _, key in ipairs(keys) do
                 local fields = redis.call('HGETALL', key)
                 for i = 1, #fields, 2 do
                     local field = fields[i]
                     local value = tonumber(fields[i + 1])
-                    local method, route, metric = field:match("([^:]+):([^:]+):data:([^:]+)")
-                    if method and route and metric then
-                        if not routeCounts[route] then
-                            routeCounts[route] = {method = method, hits = 0, memory = 0, duration = 0}
+                    local method, uri, metric = field:match("([^:]+):([^:]+):data:([^:]+)")
+                    if method and uri and metric then
+                        if not uriCounts[uri] then
+                            uriCounts[uri] = {method = method, hits = 0, memory = 0, duration = 0}
                         end
                         if metric == 'hits' then
-                            routeCounts[route].hits = routeCounts[route].hits + value
+                            uriCounts[uri].hits = uriCounts[uri].hits + value
                         end
                         if metric == 'memory' then
-                            routeCounts[route].memory = routeCounts[route].memory + value
+                            uriCounts[uri].memory = uriCounts[uri].memory + value
                         end
                         if metric == 'duration' then
-                            routeCounts[route].duration = routeCounts[route].duration + value
+                            uriCounts[uri].duration = uriCounts[uri].duration + value
                         end
                     end
                 end
             end
 
             local topRoutes = {}
-            for route, counts in pairs(routeCounts) do
+            for uri, counts in pairs(uriCounts) do
                 local averageRequestPerSecond = counts.hits / 5
                 local averageMemoryUsage = (counts.hits > 0 and counts.memory / counts.hits) or 0
                 local averageDuration = (counts.hits > 0 and counts.duration / counts.hits) or 0
-                table.insert(topRoutes, {method = counts.method, route = route, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
+                table.insert(topRoutes, {uri = uri, method = counts.method, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
             end
 
             table.sort(topRoutes, function(a, b) return a.averageRequestPerSecond > b.averageRequestPerSecond end)
