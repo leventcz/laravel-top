@@ -1,9 +1,10 @@
-<p align="center"><img src="/art/top.gif" alt="Top in action"></p>
+<p align="center"><img src="/art/top.gif" alt="Real-time monitoring with Laravel Top"></p>
 
 ```php
 php artisan top
 ```
-**Top** provides real-time monitoring directly from the command line for Laravel applications. It allows you to track essential metrics and the busiest routes with ease.
+**Top** provides real-time monitoring directly from the command line for Laravel applications. 
+It is designed for use in production environments, allowing you to track essential metrics and the busiest routes with ease.
 
 ## Installation via Composer
 
@@ -45,7 +46,7 @@ If you want to access metrics in your application, you can use the **Top** facad
 use Leventcz\Top\Facades\Top;
 use Leventcz\Top\Data\Route;
 
-$requestSummary = Top::requests();
+$requestSummary = Top::http();
 $requestSummary->averageRequestPerSecond;
 $requestSummary->averageMemoryUsage;
 $requestSummary->averageDuration;
@@ -59,7 +60,7 @@ $cacheSummary->averageHitPerSecond;
 $cacheSummary->averageMissPerSecond;
 $cacheSummary->averageWritePerSecond;
 
-$topRoutes = Top::http();
+$topRoutes = Top::routes();
 $topRoutes->each(function(Route $route) {
     $route->uri;
     $route->method;
@@ -68,6 +69,9 @@ $topRoutes->each(function(Route $route) {
     $route->averageDuration;
 })
 ```
+## Changelog
+
+Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
 
 ## Testing
 
