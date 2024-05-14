@@ -11,6 +11,7 @@ use Leventcz\Top\StateManager;
 /**
  * @method static StateManager add(string $event, int $times = 1)
  * @method static void save(HandledRequest $request)
+ * @method static static flush()
  */
 class State extends Facade
 {

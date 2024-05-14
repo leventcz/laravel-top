@@ -23,6 +23,13 @@ readonly class StateManager
         return $this;
     }
 
+    public function flush(): static
+    {
+        $this->eventCounter->flush();
+
+        return $this;
+    }
+
     public function save(HandledRequest $handledRequest): void
     {
         $this->repository->save($handledRequest, $this->eventCounter);
