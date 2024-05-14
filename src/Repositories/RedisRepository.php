@@ -172,28 +172,29 @@ readonly class RedisRepository implements Repository
                     local value = tonumber(fields[i + 1])
                     local method, uri, metric = field:match("([^:]+):([^:]+):data:([^:]+)")
                     if method and uri and metric then
-                        if not uriCounts[uri] then
-                            uriCounts[uri] = {method = method, hits = 0, memory = 0, duration = 0}
+                        local uriMethod = method .. ":" .. uri
+                        if not uriCounts[uriMethod] then
+                            uriCounts[uriMethod] = {method = method, uri = uri, hits = 0, memory = 0, duration = 0}
                         end
                         if metric == 'hits' then
-                            uriCounts[uri].hits = uriCounts[uri].hits + value
+                            uriCounts[uriMethod].hits = uriCounts[uriMethod].hits + value
                         end
                         if metric == 'memory' then
-                            uriCounts[uri].memory = uriCounts[uri].memory + value
+                            uriCounts[uriMethod].memory = uriCounts[uriMethod].memory + value
                         end
                         if metric == 'duration' then
-                            uriCounts[uri].duration = uriCounts[uri].duration + value
+                            uriCounts[uriMethod].duration = uriCounts[uriMethod].duration + value
                         end
                     end
                 end
             end
 
             local topRoutes = {}
-            for uri, counts in pairs(uriCounts) do
+            for uriMethod, counts in pairs(uriCounts) do
                 local averageRequestPerSecond = counts.hits / 5
                 local averageMemoryUsage = (counts.hits > 0 and counts.memory / counts.hits) or 0
                 local averageDuration = (counts.hits > 0 and counts.duration / counts.hits) or 0
-                table.insert(topRoutes, {uri = uri, method = counts.method, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
+                table.insert(topRoutes, {uri = counts.uri, method = counts.method, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
             end
 
             table.sort(topRoutes, function(a, b) return a.averageRequestPerSecond > b.averageRequestPerSecond end)
