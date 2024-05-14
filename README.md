@@ -31,9 +31,9 @@ return [
 
 ```
 
-## API
+## Facade
 
-If you want to access metrics programmatically, you can use the **Top** facade.
+If you want to access metrics in your application, you can use the **Top** facade.
 
 ```php
 use Leventcz\Top\Facades\Top;
