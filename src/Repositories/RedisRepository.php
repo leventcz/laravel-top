@@ -23,6 +23,7 @@ readonly class RedisRepository implements Repository
 
     public function save(HandledRequest $request, EventCounter $eventCounter): void
     {
+        // @phpstan-ignore-next-line
         $this
             ->connection()
             ->pipeline(function ($pipe) use ($request, $eventCounter) {
@@ -207,6 +208,7 @@ readonly class RedisRepository implements Repository
     private function execute(string $script): array
     {
         $keys = $this->buildKeys(now()->getTimestamp());
+        // @phpstan-ignore-next-line
         $result = $this->connection()->eval($script, count($keys), ...$keys);
 
         return json_decode($result, true);

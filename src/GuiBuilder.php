@@ -84,7 +84,7 @@ class GuiBuilder
         ]);
 
         $table->render();
-        $this->output->write("Press CTRL+C to exit");
+        $this->output->write('Press CTRL+C to exit');
     }
 
     private function renderRequestsCard(): BufferedOutput

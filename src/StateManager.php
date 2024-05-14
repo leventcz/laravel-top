@@ -16,9 +16,9 @@ readonly class StateManager
     ) {
     }
 
-    public function add(...$arguments): static
+    public function add(string $event, int $times = 1): static
     {
-        $this->eventCounter->add(...$arguments);
+        $this->eventCounter->add($event, $times);
 
         return $this;
     }
