@@ -121,9 +121,9 @@ class GuiBuilder
         $table->setHeaderTitle('High Load Routes');
         $table->setHeaders(['Method', 'Route', 'Avg. Memory Used(mb)', 'Avg. Response Time(ms)', 'Requests/sec']);
         $table->setColumnWidths([10, 30, 25, 25, 25]);
-        $this->topRoutes
-            ?->items
-            ->each(function (Route $route) use ($table) {
+        $this
+            ->topRoutes
+            ?->each(function (Route $route) use ($table) {
                 $table->addRow([
                     $route->method,
                     $route->uri,

@@ -6,14 +6,9 @@ namespace Leventcz\Top\Data;
 
 use Illuminate\Support\Collection;
 
-class RouteCollection extends Data
+class RouteCollection extends Collection
 {
-    public function __construct(
-        public Collection $items,
-    ) {
-    }
-
-    public static function collect($attributes): RouteCollection
+    public static function fromArray(array $attributes): RouteCollection
     {
         $items = collect();
         foreach ($attributes as $attribute) {

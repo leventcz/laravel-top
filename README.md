@@ -56,8 +56,8 @@ $cacheSummary->averageMissPerSecond;
 $cacheSummary->averageWritePerSecond;
 
 $topRoutes = Top::routes();
-$topRoutes->items->each(function(Route $route) {
-    $route->route;
+$topRoutes->each(function(Route $route) {
+    $route->uri;
     $route->method;
     $route->averageRequestPerSecond;
     $route->averageMemoryUsage;

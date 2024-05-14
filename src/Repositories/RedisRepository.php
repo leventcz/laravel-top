@@ -201,7 +201,7 @@ readonly class RedisRepository implements Repository
             return cjson.encode(topRoutes)
         LUA;
 
-        return RouteCollection::collect($this->execute($script));
+        return RouteCollection::fromArray($this->execute($script));
     }
 
     private function execute(string $script): array
