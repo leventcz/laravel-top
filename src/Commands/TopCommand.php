@@ -17,6 +17,8 @@ class TopCommand extends Command
 
     public function handle(GuiBuilder $guiBuilder): void
     {
+        $this->feed($guiBuilder);
+
         $guiBuilder
             ->setOutput($this->output)
             ->enterAlternateScreen()
@@ -30,14 +32,7 @@ class TopCommand extends Command
                     ->render();
             });
 
-        Loop::addPeriodicTimer(1,
-            function () use ($guiBuilder) {
-                $guiBuilder
-                    ->setRequestSummary(Top::requests())
-                    ->setDatabaseSummary(Top::database())
-                    ->setCacheSummary(Top::cache())
-                    ->setTopRoutes(Top::routes());
-            });
+        Loop::addPeriodicTimer(1, fn() => $this->feed($guiBuilder));
 
         pcntl_signal(SIGINT, function () use ($guiBuilder) {
             $guiBuilder
@@ -45,5 +40,14 @@ class TopCommand extends Command
                 ->showCursor();
             exit();
         });
+    }
+
+    private function feed(GuiBuilder $guiBuilder): void
+    {
+        $guiBuilder
+            ->setRequestSummary(Top::requests())
+            ->setDatabaseSummary(Top::database())
+            ->setCacheSummary(Top::cache())
+            ->setTopRoutes(Top::routes());
     }
 }
