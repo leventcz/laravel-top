@@ -119,7 +119,7 @@ class GuiBuilder
         $table = new Table($output);
         $table->setStyle('box');
         $table->setHeaderTitle('High Load Routes');
-        $table->setHeaders(['Method', 'Route', 'Avg. Memory Used(mb)', 'Avg. Response Time(ms)', 'Requests/sec']);
+        $table->setHeaders(['Method', 'Uri', 'Avg. Memory Used(mb)', 'Avg. Response Time(ms)', 'Requests/sec']);
         $table->setColumnWidths([10, 30, 25, 25, 25]);
         $this
             ->topRoutes
