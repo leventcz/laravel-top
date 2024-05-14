@@ -10,6 +10,7 @@
         "apm",
         "command-line-tool"
     ],
+    "homepage": "https://github.com/leventcz/laravel-top",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -21,11 +22,12 @@
     "require": {
         "php": "^8.2.0",
         "ext-pcntl": "*",
-        "laravel/framework": "^10.0|^11.0",
+        "illuminate/contracts": "^9.0|^10.0||^11.0",
         "react/event-loop": "^1.5"
     },
     "require-dev": {
         "laravel/pint": "^1.15",
+        "orchestra/testbench": "^9.0",
         "pestphp/pest": "^2.34",
         "phpstan/phpstan": "^1.10"
     },
