@@ -1,3 +1,4 @@
+<p align="center"><img src="/art/top.gif" alt="Top in action"></p>
 
 ```php
 php artisan top
