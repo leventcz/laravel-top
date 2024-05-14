@@ -197,7 +197,7 @@ readonly class RedisRepository implements Repository
             end
 
             table.sort(topRoutes, function(a, b) return a.averageRequestPerSecond > b.averageRequestPerSecond end)
-            topRoutes = #topRoutes > 5 and {unpack(topRoutes, 1, 5)} or topRoutes
+            topRoutes = #topRoutes > 20 and {unpack(topRoutes, 1, 20)} or topRoutes
 
             return cjson.encode(topRoutes)
         LUA;
