@@ -3,10 +3,13 @@
 ```php
 php artisan top
 ```
-**Top** provides real-time monitoring directly from the command line for Laravel applications. 
-It is designed for use in production environments, allowing you to track essential metrics and the busiest routes with ease.
+**Top** provides real-time monitoring directly from the command line for Laravel applications. It is designed for production environments, enabling you to effortlessly track essential metrics and identify the busiest routes.
 
-## Installation via Composer
+## How it works?
+
+**Top** listens to Laravel events and saves aggregated data to Redis hashes behind the scenes to calculate metrics. The aggregated data is stored with a short TTL, ensuring that historical data is not retained and preventing Redis from becoming overloaded. During display, metrics are calculated based on the average of the last 5 seconds of data.
+
+## Installation
 
 > **Requires [PHP 8.2+](https://php.net/releases/) and [Redis 5.0+](https://redis.io)**
 
@@ -16,7 +19,7 @@ composer require leventcz/laravel-top
 
 ## Configuration
 
-By default, **Top** uses the default Redis connection. If you want to change connection, you need to edit config file.
+By default, **Top** uses the default Redis connection. To change the connection, you need to edit the configuration file.
 
 You can publish the config file with:
 
