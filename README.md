@@ -31,6 +31,38 @@ return [
 
 ```
 
+## API
+
+If you want to access metrics programmatically, you can use the **Top** facade.
+
+```php
+use Leventcz\Top\Facades\Top;
+use Leventcz\Top\Data\Route;
+
+$requestSummary = Top::requests();
+$requestSummary->averageRequestPerSecond;
+$requestSummary->averageMemoryUsage;
+$requestSummary->averageDuration;
+
+$databaseSummary = Top::database();
+$databaseSummary->averageQueryPerSecond;
+$databaseSummary->averageQueryDuration;
+
+$cacheSummary = Top::cache();
+$cacheSummary->averageHitPerSecond;
+$cacheSummary->averageMissPerSecond;
+$cacheSummary->averageWritePerSecond;
+
+$topRoutes = Top::routes();
+$topRoutes->items->each(function(Route $route) {
+    $route->route;
+    $route->method;
+    $route->averageRequestPerSecond;
+    $route->averageMemoryUsage;
+    $route->averageDuration;
+})
+```
+
 ## Testing
 
 ```bash
