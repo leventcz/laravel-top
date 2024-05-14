@@ -25,23 +25,21 @@ readonly class RedisRepository implements Repository
     {
         $this->connection()->pipeline(function ($pipe) use ($request, $eventCounter) {
             $key = "top-requests:$request->timestamp";
-            $routeKey = $request->route.':data';
+            $routeKey = "$request->method:$request->route:data";
 
             foreach ($eventCounter->get() as $event => $times) {
                 $pipe->hIncrBy($key, "$routeKey:$event", $times);
             }
 
-            $pipe->hIncrBy($key, $routeKey.':hits', 1);
-            $pipe->hIncrBy($key, $routeKey.':memory', $request->memory);
-            $pipe->hIncrBy($key, $routeKey.':duration', $request->duration);
-            $pipe->expire($key, 600);
+            $pipe->hIncrBy($key, "$routeKey:hits", 1);
+            $pipe->hIncrBy($key, "$routeKey:memory", $request->memory);
+            $pipe->hIncrBy($key, "$routeKey:duration", $request->duration);
+            $pipe->expire($key, 10);
         });
     }
 
     public function getRequestSummary(): RequestSummary
     {
-        $keys = $this->buildKeys(now()->getTimestamp());
-
         $script = <<<'LUA'
             local keys = KEYS
             local totalRequests = 0
@@ -56,30 +54,32 @@ readonly class RedisRepository implements Repository
                     local _, metric = field:match("([^:]+):data:([^:]+)")
                     if metric == 'hits' then
                         totalRequests = totalRequests + value
-                    elseif metric == 'memory' then
+                    end
+                    if metric == 'memory' then
                         totalMemory = totalMemory + value
-                    elseif metric == 'duration' then
+                    end
+                    if metric == 'duration' then
                         totalDuration = totalDuration + value
                     end
                 end
             end
 
-            local averageRequestPerSecond = totalRequests / 5
+            local averageRequestPerSecond = (totalRequests > 0 and totalRequests / 5) or 0
             local averageMemoryUsage = (totalRequests > 0 and totalMemory / totalRequests) or 0
             local averageDuration = (totalRequests > 0 and totalDuration / totalRequests) or 0
 
-            return cjson.encode({averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
+            return cjson.encode({
+                averageRequestPerSecond = averageRequestPerSecond,
+                averageMemoryUsage = averageMemoryUsage,
+                averageDuration = averageDuration
+            })
         LUA;
 
-        $result = $this->connection()->eval($script, count($keys), ...$keys);
-
-        return RequestSummary::fromArray(json_decode($result, true));
+        return RequestSummary::fromArray($this->execute($script));
     }
 
     public function getDatabaseSummary(): DatabaseSummary
     {
-        $keys = $this->buildKeys(now()->getTimestamp());
-
         $script = <<<'LUA'
             local keys = KEYS
             local totalRequests = 0
@@ -94,29 +94,30 @@ readonly class RedisRepository implements Repository
                     local _, metric = field:match("([^:]+):data:([^:]+)")
                     if metric == 'hits' then
                         totalRequests = totalRequests + value
-                    elseif metric == 'database-query-executed' then
+                    end
+                    if metric == 'database-query-executed' then
                         totalQueryExecuted = totalQueryExecuted + value
-                    elseif metric == 'database-query-execution-time' then
+                    end
+                    if metric == 'database-query-execution-time' then
                         totalQueryDuration = totalQueryDuration + value
                     end
                 end
             end
 
-            local averageQueryPerSecond = totalQueryExecuted / 5
+            local averageQueryPerSecond = (totalQueryExecuted > 0 and totalQueryExecuted / 5) or 0
             local averageQueryDuration = (totalRequests > 0 and totalQueryDuration / totalRequests) or 0
 
-            return cjson.encode({averageQueryPerSecond = averageQueryPerSecond, averageQueryDuration = averageQueryDuration})
+            return cjson.encode({
+                averageQueryPerSecond = averageQueryPerSecond,
+                averageQueryDuration = averageQueryDuration
+            })
         LUA;
 
-        $result = $this->connection()->eval($script, count($keys), ...$keys);
-
-        return DatabaseSummary::fromArray(json_decode($result, true));
+        return DatabaseSummary::fromArray($this->execute($script));
     }
 
     public function getCacheSummary(): CacheSummary
     {
-        $keys = $this->buildKeys(now()->getTimestamp());
-
         $script = <<<'LUA'
             local keys = KEYS
             local totalCacheHit = 0
@@ -131,9 +132,11 @@ readonly class RedisRepository implements Repository
                     local _, metric = field:match("([^:]+):data:([^:]+)")
                     if metric == 'cache-hit' then
                         totalCacheHit = totalCacheHit + value
-                    elseif metric == 'cache-missed' then
+                    end
+                    if metric == 'cache-missed' then
                         totalCacheMissed = totalCacheMissed + value
-                    elseif metric == 'cache-written' then
+                    end
+                    if metric == 'cache-written' then
                         totalCacheWritten = totalCacheWritten + value
                     end
                 end
@@ -143,12 +146,14 @@ readonly class RedisRepository implements Repository
             local averageMissPerSecond = (totalCacheMissed > 0 and totalCacheMissed / 5) or 0
             local averageWritePerSecond = (totalCacheWritten > 0 and totalCacheWritten / 5) or 0
 
-            return cjson.encode({averageHitPerSecond = averageHitPerSecond, averageMissPerSecond = averageMissPerSecond, averageWritePerSecond = averageWritePerSecond})
+            return cjson.encode({
+                averageHitPerSecond = averageHitPerSecond,
+                averageMissPerSecond = averageMissPerSecond,
+                averageWritePerSecond = averageWritePerSecond
+            })
         LUA;
 
-        $result = $this->connection()->eval($script, count($keys), ...$keys);
-
-        return CacheSummary::fromArray(json_decode($result, true));
+        return CacheSummary::fromArray($this->execute($script));
     }
 
     public function getTopRoutes(): RouteCollection
@@ -170,9 +175,11 @@ readonly class RedisRepository implements Repository
                     end
                     if metric == 'hits' then
                         routeCounts[route].hits = routeCounts[route].hits + value
-                    elseif metric == 'memory' then
+                    end
+                    if metric == 'memory' then
                         routeCounts[route].memory = routeCounts[route].memory + value
-                    elseif metric == 'duration' then
+                    end
+                    if metric == 'duration' then
                         routeCounts[route].duration = routeCounts[route].duration + value
                     end
                 end
@@ -192,9 +199,15 @@ readonly class RedisRepository implements Repository
             return cjson.encode(topRoutes)
         LUA;
 
+        return RouteCollection::collect($this->execute($script));
+    }
+
+    private function execute(string $script): array
+    {
+        $keys = $this->buildKeys(now()->getTimestamp());
         $result = $this->connection()->eval($script, count($keys), ...$keys);
 
-        return RouteCollection::collect(json_decode($result, true));
+        return json_decode($result, true);
     }
 
     private function buildKeys(int $timestamp): array
