@@ -14,7 +14,7 @@ composer require leventcz/laravel-top
 
 ## Configuration
 
-By default, **Top** uses the default Redis connection. If you wish to change connection, you need to edit config file.
+By default, **Top** uses the default Redis connection. If you want to change connection, you need to edit config file.
 
 You can publish the config file with:
 
@@ -26,6 +26,9 @@ php artisan vendor:publish --tag="top"
 <?php
 
 return [
+    /*
+     * Provide a redis connection from config/database.php
+    */
     'connection' => env('TOP_REDIS_CONNECTION', 'default')
 ];
 
