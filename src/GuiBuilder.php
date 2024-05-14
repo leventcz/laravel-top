@@ -13,6 +13,7 @@ use Leventcz\Top\Extensions\BufferedOutput;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Terminal;
 
 class GuiBuilder
 {
@@ -25,6 +26,11 @@ class GuiBuilder
     private ?CacheSummary $cacheSummary = null;
 
     private ?RouteCollection $topRoutes = null;
+
+    public function __construct(
+        private readonly Terminal $terminal
+    ) {
+    }
 
     public function setOutput(OutputInterface $output): static
     {
@@ -115,13 +121,17 @@ class GuiBuilder
         $table->setHeaderTitle('High Load Routes');
         $table->setHeaders(['Method', 'Route', 'Avg. Memory Used(mb)', 'Avg. Response Time(ms)', 'Requests/sec']);
         $table->setColumnWidths([10, 30, 25, 25, 25]);
-
-        $this->topRoutes?->items->each(function (Route $route) use ($table) {
-            $table->addRow([
-                'GET', $route->route, $route->averageMemoryUsage, $route->averageDuration,
-                $route->averageRequestPerSecond,
-            ]);
-        });
+        $this->topRoutes
+            ?->items
+            ->each(function (Route $route) use ($table) {
+                $table->addRow([
+                    'GET',
+                    $route->route,
+                    number_format($route->averageMemoryUsage, 2),
+                    number_format($route->averageDuration, 2),
+                    number_format($route->averageRequestPerSecond, 2),
+                ]);
+            });
         $table->render();
 
         return $output;
@@ -132,7 +142,7 @@ class GuiBuilder
         $output = new BufferedOutput();
         $table = new Table($output);
         $table->setStyle('box');
-        $table->setColumnWidths(array_fill(0, count($headers), 30));
+        $table->setColumnWidths(array_fill(0, count($headers), 37));
         $table->setVertical();
         $table->setHeaderTitle($title);
         $table->setHeaders($headers);
@@ -140,6 +150,11 @@ class GuiBuilder
         $table->render();
 
         return $output;
+    }
+
+    private function getTerminalWidth(): int
+    {
+        return $this->terminal->getWidth();
     }
 
     public function enterAlternateScreen(): static
@@ -172,8 +187,7 @@ class GuiBuilder
 
     public function moveToTop(): static
     {
-        system('clear');
-        //$this->output?->write("\033[H");
+        $this->output?->write("\033[H");
 
         return $this;
     }
