@@ -25,13 +25,7 @@ class TopCommand extends Command
             ->hideCursor()
             ->render();
 
-        Loop::addPeriodicTimer(0.5,
-            function () use ($guiBuilder) {
-                $guiBuilder
-                    ->moveToTop()
-                    ->render();
-            });
-
+        Loop::addPeriodicTimer(0.5, fn() => $guiBuilder->moveToTop()->render());
         Loop::addPeriodicTimer(1, fn() => $this->feed($guiBuilder));
 
         pcntl_signal(SIGINT, function () use ($guiBuilder) {
