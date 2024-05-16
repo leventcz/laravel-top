@@ -1,3 +1,7 @@
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/leventcz/laravel-top.svg?style=flat-square)](https://packagist.org/packages/leventcz/laravel-top)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/leventcz/laravel-top/tests.yml?branch=1.x&label=tests&style=flat-square)](https://github.com/leventcz/laravel-top/actions)
+[![Licence](https://img.shields.io/github/license/leventcz/laravel-top.svg?style=flat-square)](https://github.com/leventcz/laravel-top/actions)
+
 <p align="center"><img src="/art/top.gif" alt="Real-time monitoring with Laravel Top"></p>
 
 ```php
@@ -11,7 +15,9 @@ php artisan top
 
 ## Installation
 
-> **Requires [PHP 8.2+](https://php.net/releases/) and [Redis 5.0+](https://redis.io)**
+> Compatible with Laravel 10, Laravel 11, and Laravel Octane.
+
+> **Requires [PHP 8.2+](https://php.net/releases/), [Redis 5.0+](https://redis.io) and [pcntl extension](https://www.php.net/manual/en/book.pcntl.php)**
 
 ```bash
 composer require leventcz/laravel-top
