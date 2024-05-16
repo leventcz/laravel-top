@@ -87,7 +87,7 @@ class GuiBuilder
 
     private function renderRequestsCard(): BufferedOutput
     {
-        return $this->createCard('HTTP', ['Requests/sec', 'Avg. Memory(MB)', 'Avg. Response Time(ms)'], [
+        return $this->createCard('HTTP', ['Requests/sec', 'Avg. Memory(MB)', 'Avg. Duration(ms)'], [
             number_format($this->requestSummary?->averageRequestPerSecond ?? 0, 2),
             number_format($this->requestSummary?->averageMemoryUsage ?? 0, 2),
             number_format($this->requestSummary?->averageDuration ?? 0, 2),
@@ -116,7 +116,7 @@ class GuiBuilder
         $output = new BufferedOutput();
         $table = new Table($output);
         $table->setStyle('compact');
-        $table->setHeaders(['Method', 'URI', 'Avg. Memory(MB)', 'Avg. Resp. Time(ms)', 'Req./sec']);
+        $table->setHeaders(['Method', 'URI', 'Avg. Memory(MB)', 'Avg. Duration(ms)', 'Req./sec']);
         $table->setColumnWidths([10, 45, 20, 20, 20]);
 
         $this
