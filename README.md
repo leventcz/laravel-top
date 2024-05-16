@@ -17,7 +17,7 @@ php artisan top
 
 > Compatible with Laravel 10, Laravel 11, and Laravel Octane.
 
-> **Requires [PHP 8.2+](https://php.net/releases/), [Redis 5.0+](https://redis.io) and [pcntl extension](https://www.php.net/manual/en/book.pcntl.php)**
+> **Requires [PHP 8.2+](https://php.net/releases/) | [Redis 5.0+](https://redis.io)**
 
 ```bash
 composer require leventcz/laravel-top
