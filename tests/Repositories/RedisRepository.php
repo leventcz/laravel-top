@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Leventcz\Top\Data\CacheSummary;
@@ -13,10 +14,16 @@ use Leventcz\Top\Repositories\RedisRepository;
 beforeEach(function () {
     $this->redisFactory = Mockery::mock(RedisFactory::class);
     $this->connection = Mockery::mock(Connection::class);
+    $this->config = Mockery::mock(Repository::class);
+
     $this->redisFactory
         ->shouldReceive('connection')
         ->andReturn($this->connection);
-    $this->repository = new RedisRepository($this->redisFactory);
+    $this->config
+        ->shouldReceive('get')
+        ->andReturn('top.connection');
+
+    $this->repository = new RedisRepository($this->redisFactory, $this->config);
 });
 
 afterEach(function () {
@@ -78,9 +85,8 @@ it('fetches request summary from redis', function () {
         ->once()
         ->andReturn(json_encode(['averageRequestPerSecond' => 1, 'averageMemoryUsage' => 2, 'averageDuration' => 3]));
 
-    $summary = $this->repository->getRequestSummary();
-
-    expect($summary)->toBeInstanceOf(RequestSummary::class);
+    expect($this->repository->getRequestSummary())
+        ->toBeInstanceOf(RequestSummary::class);
 });
 
 it('fetches database summary from redis', function () {
@@ -90,9 +96,8 @@ it('fetches database summary from redis', function () {
         ->once()
         ->andReturn(json_encode(['averageQueryPerSecond' => 1, 'averageQueryDuration' => 2]));
 
-    $summary = $this->repository->getDatabaseSummary();
-
-    expect($summary)->toBeInstanceOf(DatabaseSummary::class);
+    expect($this->repository->getDatabaseSummary())
+        ->toBeInstanceOf(DatabaseSummary::class);
 });
 
 it('fetches cache summary from redis', function () {
@@ -104,9 +109,8 @@ it('fetches cache summary from redis', function () {
             'averageHitPerSecond' => 1, 'averageMissPerSecond' => 2, 'averageWritePerSecond' => 3
         ]));
 
-    $summary = $this->repository->getCacheSummary();
-
-    expect($summary)->toBeInstanceOf(CacheSummary::class);
+    expect($this->repository->getCacheSummary())
+        ->toBeInstanceOf(CacheSummary::class);
 });
 
 it('fetches top routes from redis', function () {
@@ -121,7 +125,6 @@ it('fetches top routes from redis', function () {
             ]
         ]));
 
-    $routes = $this->repository->getTopRoutes();
-
-    expect($routes)->toBeInstanceOf(RouteCollection::class);
+    expect($this->repository->getTopRoutes())
+        ->toBeInstanceOf(RouteCollection::class);
 });
