@@ -12,8 +12,8 @@ use Leventcz\Top\TopManager;
 
 beforeEach(function () {
     $this->app = new Application();
-    $this->app->bind('config', fn() => new Repository());
-    $this->app->bind(Factory::class, fn() => Mockery::mock(RedisManager::class));
+    $this->app->bind('config', fn () => new Repository());
+    $this->app->bind(Factory::class, fn () => Mockery::mock(RedisManager::class));
     $this->app->register(ServiceProvider::class);
 });
 
