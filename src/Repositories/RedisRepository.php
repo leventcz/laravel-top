@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Leventcz\Top\Repositories;
 
+use Illuminate\Config\Repository as Config;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Leventcz\Top\Contracts\Repository;
@@ -17,7 +18,8 @@ use Leventcz\Top\Data\RouteCollection;
 readonly class RedisRepository implements Repository
 {
     public function __construct(
-        private RedisFactory $factory
+        private RedisFactory $factory,
+        private Config $config
     ) {
     }
 
@@ -227,6 +229,8 @@ readonly class RedisRepository implements Repository
 
     private function connection(): Connection
     {
-        return $this->factory->connection(config('top.connection'));
+        $connection = $this->config->get('top.connection');
+
+        return $this->factory->connection($connection);
     }
 }
