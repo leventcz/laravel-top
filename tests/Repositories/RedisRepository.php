@@ -41,6 +41,7 @@ it('saves handled request and events to redis', function () {
         ->once()
         ->with(Mockery::on(function ($callback) use ($pipe) {
             $callback($pipe);
+
             return true;
         }))
         ->andReturnNull();
@@ -106,7 +107,7 @@ it('fetches cache summary from redis', function () {
         ->shouldReceive('eval')
         ->once()
         ->andReturn(json_encode([
-            'averageHitPerSecond' => 1, 'averageMissPerSecond' => 2, 'averageWritePerSecond' => 3
+            'averageHitPerSecond' => 1, 'averageMissPerSecond' => 2, 'averageWritePerSecond' => 3,
         ]));
 
     expect($this->repository->getCacheSummary())
@@ -121,8 +122,8 @@ it('fetches top routes from redis', function () {
         ->andReturn(json_encode([
             [
                 'uri' => '', 'method' => '', 'averageRequestPerSecond' => 1, 'averageMemoryUsage' => 1,
-                'averageDuration' => 1
-            ]
+                'averageDuration' => 1,
+            ],
         ]));
 
     expect($this->repository->getTopRoutes())
