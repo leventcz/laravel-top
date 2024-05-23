@@ -17,7 +17,7 @@ readonly class RequestListener
         $duration = $startTime ? floor((microtime(true) - $startTime) * 1000) : null;
 
         $request = HandledRequest::fromArray([
-            'uri' => sprintf('/%s', $event->request->route()->uri()), // @phpstan-ignore-line
+            'uri' => sprintf('/%s', $event->request->route()?->uri()), // @phpstan-ignore-line
             'method' => $event->request->method(),
             'timestamp' => now()->getTimestamp(),
             'memory' => (int) $memory,
