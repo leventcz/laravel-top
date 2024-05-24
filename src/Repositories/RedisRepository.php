@@ -17,10 +17,13 @@ use Leventcz\Top\Data\RouteCollection;
 
 readonly class RedisRepository implements Repository
 {
+    protected int $recordingTime;
+
     public function __construct(
         private RedisFactory $factory,
         private Config $config
     ) {
+        $this->recordingTime = $this->config->get('top.recording_time');
     }
 
     public function save(HandledRequest $request, EventCounter $eventCounter): void
@@ -39,7 +42,7 @@ readonly class RedisRepository implements Repository
                 $pipe->hIncrBy($key, "$routeKey:hits", 1);
                 $pipe->hIncrBy($key, "$routeKey:memory", $request->memory);
                 $pipe->hIncrBy($key, "$routeKey:duration", $request->duration);
-                $pipe->expire($key, 10);
+                $pipe->expire($key, $this->recordingTime + 5);
             });
     }
 
@@ -47,6 +50,7 @@ readonly class RedisRepository implements Repository
     {
         $script = <<<'LUA'
             local keys = KEYS
+            local totalKeys = #KEYS
             local totalRequests = 0
             local totalMemory = 0
             local totalDuration = 0
@@ -69,7 +73,7 @@ readonly class RedisRepository implements Repository
                 end
             end
 
-            local averageRequestPerSecond = (totalRequests > 0 and totalRequests / 5) or 0
+            local averageRequestPerSecond = (totalRequests > 0 and totalRequests / totalKeys) or 0
             local averageMemoryUsage = (totalRequests > 0 and totalMemory / totalRequests) or 0
             local averageDuration = (totalRequests > 0 and totalDuration / totalRequests) or 0
 
@@ -87,6 +91,7 @@ readonly class RedisRepository implements Repository
     {
         $script = <<<'LUA'
             local keys = KEYS
+            local totalKeys = #KEYS
             local totalRequests = 0
             local totalQueryExecuted = 0
             local totalQueryDuration = 0
@@ -109,7 +114,7 @@ readonly class RedisRepository implements Repository
                 end
             end
 
-            local averageQueryPerSecond = (totalQueryExecuted > 0 and totalQueryExecuted / 5) or 0
+            local averageQueryPerSecond = (totalQueryExecuted > 0 and totalQueryExecuted / totalKeys) or 0
             local averageQueryDuration = (totalRequests > 0 and totalQueryDuration / totalRequests) or 0
 
             return cjson.encode({
@@ -125,6 +130,7 @@ readonly class RedisRepository implements Repository
     {
         $script = <<<'LUA'
             local keys = KEYS
+            local totalKeys = #KEYS
             local totalCacheHit = 0
             local totalCacheMissed = 0
             local totalCacheWritten = 0
@@ -147,9 +153,9 @@ readonly class RedisRepository implements Repository
                 end
             end
 
-            local averageHitPerSecond = (totalCacheHit > 0 and totalCacheHit / 5) or 0
-            local averageMissPerSecond = (totalCacheMissed > 0 and totalCacheMissed / 5) or 0
-            local averageWritePerSecond = (totalCacheWritten > 0 and totalCacheWritten / 5) or 0
+            local averageHitPerSecond = (totalCacheHit > 0 and totalCacheHit / totalKeys) or 0
+            local averageMissPerSecond = (totalCacheMissed > 0 and totalCacheMissed / totalKeys) or 0
+            local averageWritePerSecond = (totalCacheWritten > 0 and totalCacheWritten / totalKeys) or 0
 
             return cjson.encode({
                 averageHitPerSecond = averageHitPerSecond,
@@ -165,6 +171,7 @@ readonly class RedisRepository implements Repository
     {
         $script = <<<'LUA'
             local keys = KEYS
+            local totalKeys = #KEYS
             local uriCounts = {}
 
             for _, key in ipairs(keys) do
@@ -193,7 +200,7 @@ readonly class RedisRepository implements Repository
 
             local topRoutes = {}
             for uriMethod, counts in pairs(uriCounts) do
-                local averageRequestPerSecond = counts.hits / 5
+                local averageRequestPerSecond = counts.hits / totalKeys
                 local averageMemoryUsage = (counts.hits > 0 and counts.memory / counts.hits) or 0
                 local averageDuration = (counts.hits > 0 and counts.duration / counts.hits) or 0
                 table.insert(topRoutes, {uri = counts.uri, method = counts.method, averageRequestPerSecond = averageRequestPerSecond, averageMemoryUsage = averageMemoryUsage, averageDuration = averageDuration})
@@ -220,7 +227,7 @@ readonly class RedisRepository implements Repository
     private function buildKeys(int $timestamp): array
     {
         $keys = [];
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < $this->recordingTime; $i++) {
             $keys[] = 'top-requests:'.($timestamp - $i);
         }
 

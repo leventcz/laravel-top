@@ -36,8 +36,10 @@ class ServiceProvider extends BaseServiceProvider
             return;
         }
 
-        $dispatcher->subscribe(RequestListener::class);
-        $dispatcher->subscribe(CacheListener::class);
-        $dispatcher->subscribe(DatabaseListener::class);
+        if ($this->app['config']->get('top.recording_time') > 0) {
+            $dispatcher->subscribe(RequestListener::class);
+            $dispatcher->subscribe(CacheListener::class);
+            $dispatcher->subscribe(DatabaseListener::class);
+        }
     }
 }
