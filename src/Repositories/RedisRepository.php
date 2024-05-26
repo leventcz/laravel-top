@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Leventcz\Top\Repositories;
 
-use Illuminate\Config\Repository as Config;
-use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Leventcz\Top\Contracts\Repository;
 use Leventcz\Top\Data\CacheSummary;
@@ -17,9 +15,10 @@ use Leventcz\Top\Data\RouteCollection;
 
 readonly class RedisRepository implements Repository
 {
+    private const STATUS_KEY = 'top-status';
+
     public function __construct(
-        private RedisFactory $factory,
-        private Config $config
+        private Connection $connection
     ) {
     }
 
@@ -27,7 +26,7 @@ readonly class RedisRepository implements Repository
     {
         // @phpstan-ignore-next-line
         $this
-            ->connection()
+            ->connection
             ->pipeline(function ($pipe) use ($request, $eventCounter) {
                 $key = "top-requests:$request->timestamp";
                 $routeKey = "$request->method:$request->uri:data";
@@ -208,16 +207,30 @@ readonly class RedisRepository implements Repository
         return RouteCollection::fromArray($this->execute($script));
     }
 
+    public function recorderExists(): bool
+    {
+        return $this->connection->exists(self::STATUS_KEY) === 1; // @phpstan-ignore-line
+    }
+
+    public function setRecorder(int $duration = 5): void
+    {
+        $this->connection->setex(self::STATUS_KEY, $duration, true); // @phpstan-ignore-line
+    }
+
+    public function deleteRecorder(): void
+    {
+        $this->connection->del(self::STATUS_KEY); // @phpstan-ignore-line
+    }
+
     private function execute(string $script): array
     {
-        $keys = $this->buildKeys(now()->getTimestamp());
-        // @phpstan-ignore-next-line
-        $result = $this->connection()->eval($script, count($keys), ...$keys);
+        $keys = $this->generateKeys(now()->getTimestamp());
+        $result = $this->connection->eval($script, count($keys), ...$keys); // @phpstan-ignore-line
 
         return json_decode($result, true);
     }
 
-    private function buildKeys(int $timestamp): array
+    private function generateKeys(int $timestamp): array
     {
         $keys = [];
         for ($i = 0; $i < 5; $i++) {
@@ -225,12 +238,5 @@ readonly class RedisRepository implements Repository
         }
 
         return $keys;
-    }
-
-    private function connection(): Connection
-    {
-        $connection = $this->config->get('top.connection');
-
-        return $this->factory->connection($connection);
     }
 }
