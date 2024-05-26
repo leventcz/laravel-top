@@ -3,6 +3,7 @@
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Foundation\Application;
+use Illuminate\Redis\Connections\Connection;
 use Illuminate\Redis\RedisManager;
 use Leventcz\Top\Facades\State;
 use Leventcz\Top\Facades\Top;
@@ -11,9 +12,16 @@ use Leventcz\Top\StateManager;
 use Leventcz\Top\TopManager;
 
 beforeEach(function () {
+    $this->redis = Mockery::mock(RedisManager::class);
+    $this->connection = Mockery::mock(Connection::class);
+    $this
+        ->redis
+        ->shouldReceive('connection')
+        ->andReturn($this->connection);
+
     $this->app = new Application();
     $this->app->bind('config', fn () => new Repository());
-    $this->app->bind(Factory::class, fn () => Mockery::mock(RedisManager::class));
+    $this->app->bind(Factory::class, fn () => $this->redis);
     $this->app->register(ServiceProvider::class);
 });
 
