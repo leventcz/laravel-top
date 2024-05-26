@@ -32,12 +32,14 @@ class TopCommand extends Command
             $guiBuilder
                 ->exitAlternateScreen()
                 ->showCursor();
-            exit();
+            exit(1);
         });
     }
 
     private function feed(GuiBuilder $guiBuilder): void
     {
+        Top::startRecording();
+
         $guiBuilder
             ->setRequestSummary(Top::http())
             ->setDatabaseSummary(Top::database())
