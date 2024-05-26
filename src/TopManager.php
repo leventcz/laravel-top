@@ -36,4 +36,19 @@ readonly class TopManager
     {
         return $this->repository->getTopRoutes();
     }
+
+    public function startRecording(int $duration = 5): void
+    {
+        $this->repository->setRecorder($duration);
+    }
+
+    public function stopRecording(): void
+    {
+        $this->repository->deleteRecorder();
+    }
+
+    public function isRecording(): bool
+    {
+        return $this->repository->recorderExists();
+    }
 }
