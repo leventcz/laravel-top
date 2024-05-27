@@ -4,7 +4,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Connection
+    | Redis Connection
     |--------------------------------------------------------------------------
     |
     | Specify the Redis database connection from config/database.php
@@ -24,9 +24,9 @@ return [
     | By default, Top only listens to your application when it is running.
     | If you want to access metrics through the facade, you can select the 'always' mode.
     |
-    | Available Modes: "while_running", "always"
+    | Available Modes: "runtime", "always"
     |
     */
 
-    'recording_mode' => env('TOP_RECORDING_MODE', 'while_running'),
+    'recording_mode' => env('TOP_RECORDING_MODE', 'runtime'),
 ];
