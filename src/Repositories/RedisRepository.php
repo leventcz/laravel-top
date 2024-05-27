@@ -15,7 +15,7 @@ use Leventcz\Top\Data\RouteCollection;
 
 readonly class RedisRepository implements Repository
 {
-    private const STATUS_KEY = 'top-status';
+    private const TOP_STATUS_KEY = 'top-status';
 
     public function __construct(
         private Connection $connection
@@ -209,17 +209,17 @@ readonly class RedisRepository implements Repository
 
     public function recorderExists(): bool
     {
-        return $this->connection->exists(self::STATUS_KEY) === 1; // @phpstan-ignore-line
+        return $this->connection->exists(self::TOP_STATUS_KEY) === 1; // @phpstan-ignore-line
     }
 
     public function setRecorder(int $duration = 5): void
     {
-        $this->connection->setex(self::STATUS_KEY, $duration, true); // @phpstan-ignore-line
+        $this->connection->setex(self::TOP_STATUS_KEY, $duration, true); // @phpstan-ignore-line
     }
 
     public function deleteRecorder(): void
     {
-        $this->connection->del(self::STATUS_KEY); // @phpstan-ignore-line
+        $this->connection->del(self::TOP_STATUS_KEY); // @phpstan-ignore-line
     }
 
     private function execute(string $script): array
