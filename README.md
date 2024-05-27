@@ -11,7 +11,7 @@ php artisan top
 ```
 **Top** provides a lightweight solution for real-time monitoring directly from the command line for Laravel applications. It is designed for production environments, enabling you to effortlessly track essential metrics and identify the busiest routes.
 
-## How it works?
+## How it works
 
 **Top** listens to Laravel events and saves aggregated data to Redis behind the scenes to calculate metrics. The aggregated data is stored with a short TTL, ensuring that historical data is not retained and preventing Redis from becoming overloaded. During display, metrics are calculated based on the average of the last 5 seconds of data.
 
