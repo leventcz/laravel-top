@@ -22,7 +22,7 @@ return [
     |
     | Determine when Top should record application metrics based on this value.
     | By default, Top only listens to your application when it is running.
-    | If you want to access metrics through the facade, you can select the 'always' mode.
+    | If you want to access metrics through the facade, you can select the "always" mode.
     |
     | Available Modes: "runtime", "always"
     |
