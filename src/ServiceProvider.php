@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Leventcz\Top;
 
 use Illuminate\Contracts\Redis\Factory;
-use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Leventcz\Top\Commands\TopCommand;
@@ -37,7 +36,7 @@ class ServiceProvider extends BaseServiceProvider
         });
     }
 
-    public function boot(Dispatcher $dispatcher): void
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([TopCommand::class]);
@@ -46,16 +45,8 @@ class ServiceProvider extends BaseServiceProvider
             return;
         }
 
-        // todo: octane support
-        if ($this->shouldRecord()) {
-            $dispatcher->subscribe(RequestListener::class);
-            $dispatcher->subscribe(CacheListener::class);
-            $dispatcher->subscribe(DatabaseListener::class);
-        }
-    }
-
-    private function shouldRecord(): bool
-    {
-        return $this->app['config']->get('top.recording_mode') === 'always' || $this->app['top']->isRecording();
+        $this->app->make('events')->subscribe(RequestListener::class);
+        $this->app->make('events')->subscribe(CacheListener::class);
+        $this->app->make('events')->subscribe(DatabaseListener::class);
     }
 }
