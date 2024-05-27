@@ -32,7 +32,7 @@ class TopCommand extends Command
             $guiBuilder
                 ->exitAlternateScreen()
                 ->showCursor();
-            exit(1);
+            exit(0);
         });
     }
 
