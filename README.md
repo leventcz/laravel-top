@@ -2,16 +2,22 @@
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/leventcz/laravel-top/tests.yml?branch=1.x&label=tests&style=flat-square)](https://github.com/leventcz/laravel-top/actions)
 [![Licence](https://img.shields.io/github/license/leventcz/laravel-top.svg?style=flat-square)](https://github.com/leventcz/laravel-top/actions)
 
+<a href="https://trendshift.io/repositories/10338" target="_blank"><img src="https://trendshift.io/api/badge/repositories/10338" alt="leventcz%2Flaravel-top | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 <p align="center"><img src="/art/top.gif" alt="Real-time monitoring with Laravel Top"></p>
 
 ```php
 php artisan top
 ```
-**Top** provides real-time monitoring directly from the command line for Laravel applications. It is designed for production environments, enabling you to effortlessly track essential metrics and identify the busiest routes.
+**Top** provides a lightweight solution for real-time monitoring directly from the command line for Laravel applications. It is designed for production environments, enabling you to effortlessly track essential metrics and identify the busiest routes.
 
 ## How it works?
 
-**Top** listens to Laravel events and saves aggregated data to Redis hashes behind the scenes to calculate metrics. The aggregated data is stored with a short TTL, ensuring that historical data is not retained and preventing Redis from becoming overloaded. During display, metrics are calculated based on the average of the last 5 seconds of data.
+**Top** listens to Laravel events and saves aggregated data to Redis behind the scenes to calculate metrics. The aggregated data is stored with a short TTL, ensuring that historical data is not retained and preventing Redis from becoming overloaded. During display, metrics are calculated based on the average of the last 5 seconds of data.
+
+**Top** only listens to events from incoming requests, so metrics from operations performed via queues or commands are not reflected.
+
+Since the data is stored in Redis, the output of the top command reflects data from all application servers, not just the server where you run the command.
 
 ## Installation
 
@@ -25,8 +31,6 @@ composer require leventcz/laravel-top
 
 ## Configuration
 
-By default, **Top** uses the default Redis connection. To change the connection, you need to edit the configuration file.
-
 You can publish the config file with:
 
 ```bash
@@ -37,11 +41,36 @@ php artisan vendor:publish --tag="top"
 <?php
 
 return [
+
     /*
-     * Provide a redis connection from config/database.php
+    |--------------------------------------------------------------------------
+    | Redis Connection
+    |--------------------------------------------------------------------------
+    |
+    | Specify the Redis database connection from config/database.php
+    | that Top will use to save data.
+    | The default value is suitable for most applications.
+    |
     */
-    'connection' => env('TOP_REDIS_CONNECTION', 'default')
+
+    'connection' => env('TOP_REDIS_CONNECTION', 'default'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recording Mode
+    |--------------------------------------------------------------------------
+    |
+    | Determine when Top should record application metrics based on this value.
+    | By default, Top only listens to your application when it is running.
+    | If you want to access metrics through the facade, you can select the "always" mode.
+    |
+    | Available Modes: "runtime", "always"
+    |
+    */
+
+    'recording_mode' => env('TOP_RECORDING_MODE', 'runtime'),
 ];
+
 
 ```
 
@@ -55,20 +84,24 @@ If you want to access metrics in your application, you can use the **Top** facad
 use Leventcz\Top\Facades\Top;
 use Leventcz\Top\Data\Route;
 
+// Retrieve HTTP request metrics
 $requestSummary = Top::http();
 $requestSummary->averageRequestPerSecond;
 $requestSummary->averageMemoryUsage;
 $requestSummary->averageDuration;
 
+// Retrieve database query metrics
 $databaseSummary = Top::database();
 $databaseSummary->averageQueryPerSecond;
 $databaseSummary->averageQueryDuration;
 
+// Retrieve cache operation metrics
 $cacheSummary = Top::cache();
 $cacheSummary->averageHitPerSecond;
 $cacheSummary->averageMissPerSecond;
 $cacheSummary->averageWritePerSecond;
 
+// Retrieve the top 20 busiest routes
 $topRoutes = Top::routes();
 $topRoutes->each(function(Route $route) {
     $route->uri;
@@ -76,11 +109,17 @@ $topRoutes->each(function(Route $route) {
     $route->averageRequestPerSecond;
     $route->averageMemoryUsage;
     $route->averageDuration;
-})
-```
-## Changelog
+});
 
-Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
+// Force Top to start recording for the given duration (in seconds)
+Top::startRecording(int $duration = 5);
+
+// Force Top to stop recording
+Top::stopRecording();
+
+// Check if Top is currently recording
+Top::isRecording();
+```
 
 ## Testing
 
