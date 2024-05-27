@@ -7,11 +7,16 @@ namespace Leventcz\Top\Listeners;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Leventcz\Top\Data\HandledRequest;
 use Leventcz\Top\Facades\State;
+use Leventcz\Top\Facades\Top;
 
 readonly class RequestListener
 {
     public function requestHandled(RequestHandled $event): void
     {
+        if (! $this->shouldRecord()) {
+            return;
+        }
+
         $startTime = defined('LARAVEL_START') ? LARAVEL_START : $event->request->server('REQUEST_TIME_FLOAT');
         $memory = memory_get_peak_usage(true) / 1024 / 1024;
         $duration = $startTime ? floor((microtime(true) - $startTime) * 1000) : null;
@@ -32,5 +37,10 @@ readonly class RequestListener
         return [
             RequestHandled::class => 'requestHandled',
         ];
+    }
+
+    private function shouldRecord(): bool
+    {
+        return config('top.recording_mode') === 'always' || Top::isRecording();
     }
 }
