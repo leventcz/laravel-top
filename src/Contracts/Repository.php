@@ -22,4 +22,10 @@ interface Repository
     public function getCacheSummary(): CacheSummary;
 
     public function getTopRoutes(): RouteCollection;
+
+    public function recorderExists(): bool;
+
+    public function setRecorder(int $ttl = 5): void;
+
+    public function deleteRecorder(): void;
 }

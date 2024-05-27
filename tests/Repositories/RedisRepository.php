@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Config\Repository;
-use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Leventcz\Top\Data\CacheSummary;
 use Leventcz\Top\Data\DatabaseSummary;
@@ -12,18 +10,8 @@ use Leventcz\Top\Data\RouteCollection;
 use Leventcz\Top\Repositories\RedisRepository;
 
 beforeEach(function () {
-    $this->redisFactory = Mockery::mock(RedisFactory::class);
     $this->connection = Mockery::mock(Connection::class);
-    $this->config = Mockery::mock(Repository::class);
-
-    $this->redisFactory
-        ->shouldReceive('connection')
-        ->andReturn($this->connection);
-    $this->config
-        ->shouldReceive('get')
-        ->andReturn('top.connection');
-
-    $this->repository = new RedisRepository($this->redisFactory, $this->config);
+    $this->repository = new RedisRepository($this->connection);
 });
 
 afterEach(function () {

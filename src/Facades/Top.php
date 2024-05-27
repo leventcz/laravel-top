@@ -15,6 +15,9 @@ use Leventcz\Top\Data\RouteCollection;
  * @method static DatabaseSummary database()
  * @method static CacheSummary cache()
  * @method static RouteCollection routes()
+ * @method static void startRecording(int $duration = 5)
+ * @method static void stopRecording()
+ * @method static bool isRecording()
  */
 class Top extends Facade
 {

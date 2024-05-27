@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Leventcz\Top;
 
-use Illuminate\Events\Dispatcher;
+use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Leventcz\Top\Commands\TopCommand;
@@ -20,14 +20,23 @@ class ServiceProvider extends BaseServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/top.php', 'top');
-        $this->app->singleton(Repository::class, RedisRepository::class);
         $this->app->singleton('top', TopManager::class);
-        $this->app->bind('top.state', function (Application $app) {
-            return new StateManager($app->make(EventCounter::class), $app->make(Repository::class));
+        $this->app->singleton(Repository::class, function (Application $application) {
+            $connection = $application
+                ->make(Factory::class)
+                ->connection($application['config']->get('top.connection'));
+
+            return new RedisRepository($connection);
+        });
+        $this->app->bind('top.state', function (Application $application) {
+            return new StateManager(
+                $application->make(EventCounter::class),
+                $application->make(Repository::class)
+            );
         });
     }
 
-    public function boot(Dispatcher $dispatcher): void
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([TopCommand::class]);
@@ -36,8 +45,8 @@ class ServiceProvider extends BaseServiceProvider
             return;
         }
 
-        $dispatcher->subscribe(RequestListener::class);
-        $dispatcher->subscribe(CacheListener::class);
-        $dispatcher->subscribe(DatabaseListener::class);
+        $this->app->make('events')->subscribe(RequestListener::class);
+        $this->app->make('events')->subscribe(CacheListener::class);
+        $this->app->make('events')->subscribe(DatabaseListener::class);
     }
 }
