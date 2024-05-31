@@ -28,11 +28,11 @@ class TopCommand extends Command
         Loop::addPeriodicTimer(0.5, fn () => $guiBuilder->moveToTop()->render());
         Loop::addPeriodicTimer(1, fn () => $this->feed($guiBuilder));
 
-        pcntl_signal(SIGINT, function () use ($guiBuilder) {
+        $this->trap(SIGINT, function () use ($guiBuilder) {
             $guiBuilder
                 ->exitAlternateScreen()
                 ->showCursor();
-            exit(0);
+            exit();
         });
     }
 
