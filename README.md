@@ -2,6 +2,8 @@
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/leventcz/laravel-top/tests.yml?branch=1.x&label=tests&style=flat-square)](https://github.com/leventcz/laravel-top/actions)
 [![Licence](https://img.shields.io/github/license/leventcz/laravel-top.svg?style=flat-square)](https://github.com/leventcz/laravel-top/actions)
 
+<a href="https://trendshift.io/repositories/10338" target="_blank"><img src="https://trendshift.io/api/badge/repositories/10338" alt="leventcz%2Flaravel-top | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 <p align="center"><img src="/art/top.gif" alt="Real-time monitoring with Laravel Top"></p>
 
 ```php
