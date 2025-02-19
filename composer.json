@@ -22,14 +22,14 @@
     "require": {
         "php": "^8.2.0",
         "ext-pcntl": "*",
-        "laravel/framework": "^10.0|^11.0",
+        "laravel/framework": "^10.0|^11.0|^12.0",
         "react/event-loop": "^1.5"
     },
     "require-dev": {
         "laravel/pint": "^1.15",
         "mockery/mockery": "^1.6",
-        "pestphp/pest": "^2.34",
-        "phpstan/phpstan": "^1.10"
+        "pestphp/pest": "^2.34|^3.7",
+        "phpstan/phpstan": "^1.10|^2.1"
     },
     "autoload": {
         "psr-4": {
