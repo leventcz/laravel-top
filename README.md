@@ -21,7 +21,7 @@ Since the data is stored in Redis, the output of the top command reflects data f
 
 ## Installation
 
-> Compatible with Laravel 10, Laravel 11, and Laravel Octane.
+> Compatible with Laravel 10+ and Laravel Octane.
 
 > **Requires [PHP 8.2+](https://php.net/releases/) | [Redis 5.0+](https://redis.io)**
 
